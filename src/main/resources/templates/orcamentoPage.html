@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Orçamentos | PEDRO</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            /* Paleta Indigo & Slate */
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --secondary: #64748b;
+            --bg-app: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout Grid */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex; flex-direction: column; gap: 3rem;
+        }
+        .brand {
+            font-size: 1.5rem; font-weight: 700; color: var(--primary);
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; }
+        .nav-item {
+            text-decoration: none; color: var(--secondary); padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm); font-weight: 500;
+            display: flex; align-items: center; gap: 0.75rem; transition: 0.2s;
+        }
+        .nav-item:hover { background-color: var(--bg-app); color: var(--primary); }
+        .nav-item.active { background-color: var(--primary-light); color: var(--primary); }
+
+        /* Conteúdo Principal */
+        .main-content { overflow-y: auto; padding: 2rem; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .top-bar h1 { font-size: 1.75rem; font-weight: 600; }
+        .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+        .user-profile .avatar {
+            width: 40px; height: 40px; background-color: var(--primary); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;
+        }
+
+        /* Grid de Trabalho (Split View) */
+        .workspace-grid {
+            display: grid; grid-template-columns: 350px 1fr; gap: 2rem; align-items: start;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-surface); border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md); padding: 1.5rem; border: 1px solid var(--border);
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+        }
+        .card-header h2 { font-size: 1.1rem; font-weight: 600; }
+        .badge { font-size: 0.75rem; background: var(--bg-app); padding: 0.25rem 0.75rem; border-radius: 20px; color: var(--secondary); border: 1px solid var(--border); }
+
+        /* Componentes de Formulário */
+        .input-group { margin-bottom: 1.25rem; position: relative; }
+        .input-group label { display: block; font-size: 0.85rem; color: var(--secondary); margin-bottom: 0.4rem; font-weight: 500; }
+
+        input, select {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-family: var(--font-family); font-size: 0.95rem;
+            background: var(--bg-surface); transition: 0.2s;
+        }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        /* Toggle Button (Segmented Control) */
+        .toggle-container {
+            display: flex; background: var(--bg-app); padding: 4px;
+            border-radius: var(--radius-sm); margin-bottom: 1.25rem; border: 1px solid var(--border);
+        }
+        .toggle-btn {
+            flex: 1; padding: 0.5rem; text-align: center; cursor: pointer;
+            font-size: 0.85rem; font-weight: 500; color: var(--secondary);
+            border-radius: 4px; transition: 0.2s; user-select: none;
+        }
+        .toggle-btn.active {
+            background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); font-weight: 600;
+        }
+
+        /* Autocomplete & Selected Item */
+        .search-wrapper { position: relative; }
+        .autocomplete-list {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
+            z-index: 10; list-style: none; margin-top: 4px; max-height: 180px; overflow-y: auto;
+        }
+        .autocomplete-list li {
+            padding: 0.75rem; font-size: 0.9rem; cursor: pointer; border-bottom: 1px solid var(--bg-app);
+        }
+        .autocomplete-list li:hover { background-color: var(--bg-app); color: var(--primary); }
+
+        /* Item Selecionado (Visual Card) */
+        .selected-card {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--primary-light); color: var(--primary-dark);
+            padding: 0.75rem; border-radius: var(--radius-sm);
+            font-size: 0.9rem; font-weight: 500; margin-top: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .btn-remove-selection {
+            cursor: pointer; color: var(--primary); opacity: 0.7;
+        }
+        .btn-remove-selection:hover { opacity: 1; }
+
+        /* Botões */
+        .btn {
+            cursor: pointer; border: none; font-family: var(--font-family);
+            padding: 0.75rem 1.5rem; border-radius: var(--radius-sm);
+            font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s;
+        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-ghost { background: transparent; color: var(--secondary); }
+        .btn-ghost:hover { background: var(--bg-app); color: var(--text-main); }
+
+        .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; cursor: pointer; color: var(--secondary); display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.1rem; }
+        .btn-icon:hover { background: var(--bg-app); color: var(--primary); }
+        .btn-icon.danger:hover { background: #fee2e2; color: var(--danger); }
+
+        /* Tabela */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .data-table th { text-align: left; padding: 1rem; color: var(--secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .action-cell { display: flex; gap: 0.25rem; justify-content: flex-end; }
+
+        /* Modal */
+        dialog.app-modal {
+            margin: auto; padding: 0; border: none; border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md); background: transparent; max-width: 90vw;
+        }
+        dialog::backdrop { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); }
+        .modal-box { background: white; padding: 2rem; width: 500px; display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Utilitários */
+        .hidden { display: none !important; }
+        .actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+
+        @media (max-width: 1024px) {
+            .app-layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="ph-fill ph-hexagon"></i>
+            <span>PEDRO</span>
+        </div>
+        <nav class="nav-menu">
+            <a href="orcamentos" class="nav-item active"><i class="ph ph-currency-dollar"></i> Orçamentos</a>
+            <a href="usuarios" class="nav-item"><i class="ph ph-users"></i> Usuários</a>
+            <a href="clientes" class="nav-item"><i class="ph ph-address-book"></i> Clientes</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h1>Orçamentos</h1>
+                <p class="subtitle">Gerencie propostas e vínculos fiscais.</p>
+            </div>
+            <div class="user-profile">
+                <span class="avatar">PH</span>
+            </div>
+        </header>
+
+        <div class="workspace-grid">
+            <section class="card">
+                <div class="card-header">
+                    <h2>Novo Orçamento</h2>
+                </div>
+                <form id="form-create">
+                    <div class="input-group">
+                        <label>Vincular a:</label>
+                        <div class="toggle-container" id="create-toggle-container">
+                            <div class="toggle-btn active" data-value="usuario">
+                                <i class="ph ph-user"></i> Usuário
+                            </div>
+                            <div class="toggle-btn" data-value="cliente">
+                                <i class="ph ph-briefcase"></i> Cliente
+                            </div>
+                        </div>
+                        <input type="hidden" id="create-author-type" value="usuario">
+                    </div>
+
+                    <div id="create-wrapper-usuario" class="input-group">
+                        <label>Buscar Usuário</label>
+                        <div class="search-wrapper">
+                            <input type="text" id="create-search-usuario" placeholder="Digite o nome do usuário..." autocomplete="off">
+                            <ul id="create-list-usuario" class="autocomplete-list hidden"></ul>
+                        </div>
+                        <div id="create-selected-usuario" class="selected-card hidden">
+                            <span class="text"></span>
+                            <i class="ph-bold ph-x btn-remove-selection"></i>
+                        </div>
+                        <input type="hidden" id="create-id-usuario" name="usuarioId">
+                    </div>
+
+                    <div id="create-wrapper-cliente" class="input-group hidden">
+                        <label>Buscar Cliente</label>
+                        <div class="search-wrapper">
+                            <input type="text" id="create-search-cliente" placeholder="Digite nome ou CPF..." autocomplete="off">
+                            <ul id="create-list-cliente" class="autocomplete-list hidden"></ul>
+                        </div>
+                        <div id="create-selected-cliente" class="selected-card hidden">
+                            <span class="text"></span>
+                            <i class="ph-bold ph-x btn-remove-selection"></i>
+                        </div>
+                        <input type="hidden" id="create-id-cliente" name="clienteId">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Estado (ICMS)</label>
+                        <select id="create-uf" required>
+                            <option value="ICMS_MG">Minas Gerais (MG)</option>
+                            <option value="ICMS_SP">São Paulo (SP)</option>
+                            <option value="ICMS_RJ">Rio de Janeiro (RJ)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Valor Total (R$)</label>
+                        <input type="number" id="create-valor" step="0.01" placeholder="0,00" required>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary full-width">
+                            <i class="ph ph-floppy-disk"></i> Salvar
+                        </button>
+                        <button type="button" id="btn-clear" class="btn btn-ghost">Limpar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>Registros</h2>
+                    <span class="badge" id="total-count">0 itens</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vinculado A</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th class="text-right">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<dialog id="modal-edit" class="app-modal">
+    <div class="modal-box">
+        <div class="card-header" style="border:none; padding:0; margin:0;">
+            <h3>Editar Orçamento</h3>
+            <button class="btn-icon close-modal"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="form-edit">
+            <input type="hidden" id="edit-id">
+
+            <div class="input-group">
+                <label>Vincular a:</label>
+                <div class="toggle-container" id="edit-toggle-container">
+                    <div class="toggle-btn active" data-value="usuario">Usuário</div>
+                    <div class="toggle-btn" data-value="cliente">Cliente</div>
+                </div>
+                <input type="hidden" id="edit-author-type" value="usuario">
+            </div>
+
+            <div id="edit-wrapper-usuario" class="input-group">
+                <div class="search-wrapper">
+                    <input type="text" id="edit-search-usuario" placeholder="Buscar usuário..." autocomplete="off">
+                    <ul id="edit-list-usuario" class="autocomplete-list hidden"></ul>
+                </div>
+                <div id="edit-selected-usuario" class="selected-card hidden">
+                    <span class="text"></span>
+                    <i class="ph-bold ph-x btn-remove-selection"></i>
+                </div>
+                <input type="hidden" id="edit-id-usuario">
+            </div>
+
+            <div id="edit-wrapper-cliente" class="input-group hidden">
+                <div class="search-wrapper">
+                    <input type="text" id="edit-search-cliente" placeholder="Buscar cliente..." autocomplete="off">
+                    <ul id="edit-list-cliente" class="autocomplete-list hidden"></ul>
+                </div>
+                <div id="edit-selected-cliente" class="selected-card hidden">
+                    <span class="text"></span>
+                    <i class="ph-bold ph-x btn-remove-selection"></i>
+                </div>
+                <input type="hidden" id="edit-id-cliente">
+            </div>
+
+            <div class="input-group">
+                <label>Estado</label>
+                <select id="edit-uf" required>
+                    <option value="ICMS_MG">Minas Gerais</option>
+                    <option value="ICMS_SP">São Paulo</option>
+                    <option value="ICMS_RJ">Rio de Janeiro</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Valor</label>
+                <input type="number" id="edit-valor" step="0.01" required>
+            </div>
+
+            <div class="actions" style="justify-content: flex-end;">
+                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Atualizar</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    class BudgetManager {
+        constructor() {
+            // Configuração da API
+            this.api = {
+                orcamentos: '/orcamentos/api',
+                usuarios: '/api/usuarios/pesquisa', // ?nome=X
+                clientes: '/api/clientes/pesquisa'  // ?termo=X
+            };
+
+            // Estado
+            this.data = [];
+
+            // Elementos principais
+            this.elements = {
+                tableBody: document.getElementById('table-body'),
+                totalCount: document.getElementById('total-count'),
+                modalEdit: document.getElementById('modal-edit'),
+                formCreate: document.getElementById('form-create'),
+                formEdit: document.getElementById('form-edit')
+            };
+
+            this.init();
+        }
+
+        init() {
+            this.fetchData();
+            this.bindEvents();
+
+            // Configura lógica para o Formulário de Criação
+            this.setupFormLogic('create');
+            // Configura lógica para o Formulário de Edição
+            this.setupFormLogic('edit');
+        }
+
+        bindEvents() {
+            // Submit Criar
+            this.elements.formCreate.addEventListener('submit', (e) => this.handleSave(e, 'create'));
+
+            // Submit Editar
+            this.elements.formEdit.addEventListener('submit', (e) => this.handleSave(e, 'edit'));
+
+            // Limpar Form
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                this.elements.formCreate.reset();
+                this.resetSelection('create', 'usuario');
+                this.resetSelection('create', 'cliente');
+                // Reset toggle visual
+                this.triggerToggle('create', 'usuario');
+            });
+
+            // Ações da Tabela (Edit/Delete)
+            this.elements.tableBody.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if(!btn) return;
+                const id = btn.dataset.id;
+                if(btn.classList.contains('action-edit')) this.openEdit(id);
+                if(btn.classList.contains('action-delete')) this.handleDelete(id);
+            });
+
+            // Fechar Modal
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => this.elements.modalEdit.close());
+            });
+        }
+
+        // --- Lógica de Formulário (Toggle & Autocomplete) ---
+        setupFormLogic(prefix) {
+            // 1. Toggle Button Logic
+            const container = document.getElementById(`${prefix}-toggle-container`);
+            const inputType = document.getElementById(`${prefix}-author-type`);
+            const wrapperUser = document.getElementById(`${prefix}-wrapper-usuario`);
+            const wrapperClient = document.getElementById(`${prefix}-wrapper-cliente`);
+
+            const buttons = container.querySelectorAll('.toggle-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update visual
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Update state
+                    const val = btn.dataset.value;
+                    inputType.value = val;
+
+                    // Toggle Visibility
+                    if(val === 'usuario') {
+                        wrapperUser.classList.remove('hidden');
+                        wrapperClient.classList.add('hidden');
+                        this.resetSelection(prefix, 'cliente'); // Limpa o outro
+                    } else {
+                        wrapperUser.classList.add('hidden');
+                        wrapperClient.classList.remove('hidden');
+                        this.resetSelection(prefix, 'usuario'); // Limpa o outro
+                    }
+                });
+            });
+
+            // 2. Autocomplete Logic
+            this.setupAutocomplete(prefix, 'usuario', this.api.usuarios, 'nome');
+            this.setupAutocomplete(prefix, 'cliente', this.api.clientes, 'termo');
+        }
+
+        triggerToggle(prefix, value) {
+            const btn = document.querySelector(`#${prefix}-toggle-container .toggle-btn[data-value="${value}"]`);
+            if(btn) btn.click();
+        }
+
+        // --- Autocomplete Genérico ---
+        setupAutocomplete(prefix, type, apiUrl, queryParam) {
+            const inputSearch = document.getElementById(`${prefix}-search-${type}`);
+            const list = document.getElementById(`${prefix}-list-${type}`);
+            const cardSelected = document.getElementById(`${prefix}-selected-${type}`);
+            const inputHiddenId = document.getElementById(`${prefix}-id-${type}`);
+
+            let timeout;
+
+            // Input Event
+            inputSearch.addEventListener('input', () => {
+                clearTimeout(timeout);
+                const val = inputSearch.value;
+                if(val.length < 2) {
+                    list.classList.add('hidden');
+                    return;
+                }
+
+                timeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`${apiUrl}?${queryParam}=${encodeURIComponent(val)}`);
+                        const data = await res.json();
+
+                        list.innerHTML = '';
+                        if(data.length > 0) {
+                            list.classList.remove('hidden');
+                            data.forEach(item => {
+                                const li = document.createElement('li');
+                                // Normaliza campos diferentes da API (Usuario usa nomeUsuario, Cliente usa nome)
+                                const displayText = item.nome || item.nomeUsuario;
+                                li.textContent = `${displayText} (CPF: ${item.cpf})`;
+                                li.onclick = () => {
+                                    this.selectItem(prefix, type, item.id, displayText);
+                                    list.classList.add('hidden');
+                                };
+                                list.appendChild(li);
+                            });
+                        } else {
+                            list.classList.add('hidden');
+                        }
+                    } catch(e) { console.error('Erro autocomplete', e); }
+                }, 300);
+            });
+
+            // Remove Selection Event
+            cardSelected.querySelector('.btn-remove-selection').addEventListener('click', () => {
+                this.resetSelection(prefix, type);
+            });
+
+            // Close list on blur
+            document.addEventListener('click', (e) => {
+                if(e.target !== inputSearch) list.classList.add('hidden');
+            });
+        }
+
+        selectItem(prefix, type, id, text) {
+            document.getElementById(`${prefix}-search-${type}`).value = ''; // Limpa busca
+            document.getElementById(`${prefix}-search-${type}`).classList.add('hidden'); // Esconde input
+            document.getElementById(`${prefix}-id-${type}`).value = id; // Seta ID
+
+            const card = document.getElementById(`${prefix}-selected-${type}`);
+            card.querySelector('.text').textContent = text;
+            card.classList.remove('hidden'); // Mostra card
+        }
+
+        resetSelection(prefix, type) {
+            document.getElementById(`${prefix}-id-${type}`).value = '';
+            document.getElementById(`${prefix}-selected-${type}`).classList.add('hidden');
+
+            const inputSearch = document.getElementById(`${prefix}-search-${type}`);
+            inputSearch.value = '';
+            inputSearch.classList.remove('hidden');
+        }
+
+        // --- CRUD ---
+
+        async fetchData() {
+            try {
+                const res = await fetch(this.api.orcamentos);
+                if(!res.ok) throw new Error('API Error');
+                this.data = await res.json();
+                this.renderTable();
+            } catch(e) {
+                console.warn('API Indisponível (Modo Demo)', e);
+                // Mock Data
+                if(this.data.length === 0) {
+                    this.data = [
+                        { id: 1, usuario: {id: 1, nomeUsuario: 'Admin'}, cliente: null, icmsEstados: 'ICMS_MG', valorOrcamento: 1500.50 },
+                        { id: 2, usuario: null, cliente: {id: 10, nome: 'Empresa X'}, icmsEstados: 'ICMS_SP', valorOrcamento: 5000.00 }
+                    ];
+                    this.renderTable();
+                }
+            }
+        }
+
+        renderTable() {
+            this.elements.tableBody.innerHTML = '';
+            this.elements.totalCount.textContent = `${this.data.length} registros`;
+
+            this.data.forEach(item => {
+                // Define quem é o autor para exibir
+                let autor = '<span style="color:var(--text-muted)">Sem vínculo</span>';
+                let tipo = '-';
+
+                if(item.usuario) {
+                    autor = `<strong>${item.usuario.nomeUsuario}</strong>`;
+                    tipo = '<span class="badge">Usuário</span>';
+                } else if(item.cliente) {
+                    autor = `<strong>${item.cliente.nome}</strong>`;
+                    tipo = '<span class="badge">Cliente</span>';
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                        <td>#${item.id}</td>
+                        <td>${autor}</td>
+                        <td>${tipo}</td>
+                        <td>${new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(item.valorOrcamento)}</td>
+                        <td class="action-cell">
+                            <button class="btn-icon action-edit" data-id="${item.id}"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="btn-icon danger action-delete" data-id="${item.id}"><i class="ph ph-trash"></i></button>
+                        </td>
+                    `;
+                this.elements.tableBody.appendChild(tr);
+            });
+        }
+
+        async handleSave(e, prefix) {
+            e.preventDefault();
+
+            const type = document.getElementById(`${prefix}-author-type`).value;
+            const userId = document.getElementById(`${prefix}-id-usuario`).value;
+            const clientId = document.getElementById(`${prefix}-id-cliente`).value;
+            const valor = parseFloat(document.getElementById(`${prefix}-valor`).value);
+
+            // Validação
+            if(type === 'usuario' && !userId) return alert('Selecione um usuário.');
+            if(type === 'cliente' && !clientId) return alert('Selecione um cliente.');
+
+            const payload = {
+                icmsEstados: document.getElementById(`${prefix}-uf`).value,
+                valorOrcamento: valor,
+                usuario: (type === 'usuario') ? { id: parseInt(userId) } : null,
+                cliente: (type === 'cliente') ? { id: parseInt(clientId) } : null
+            };
+
+            if(prefix === 'edit') payload.id = document.getElementById('edit-id').value;
+
+            try {
+                const res = await fetch(this.api.orcamentos, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                if(prefix === 'edit') this.elements.modalEdit.close();
+                else {
+                    this.elements.formCreate.reset();
+                    this.resetSelection('create', 'usuario');
+                    this.resetSelection('create', 'cliente');
+                }
+
+                await this.fetchData();
+                alert('Salvo com sucesso!');
+
+            } catch(e) { console.error(e); alert('Erro ao salvar.'); }
+        }
+
+        async handleDelete(id) {
+            if(!confirm('Deseja excluir este orçamento?')) return;
+            try {
+                await fetch(`${this.api.orcamentos}/${id}`, { method: 'DELETE' });
+                this.fetchData();
+            } catch(e) { console.error(e); }
+        }
+
+        async openEdit(id) {
+            // Find item in local data (or fetch from API specific endpoint)
+            const item = this.data.find(d => d.id == id);
+            if(!item) return;
+
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('edit-uf').value = item.icmsEstados;
+            document.getElementById('edit-valor').value = item.valorOrcamento;
+
+            // Set Toggle & Selection
+            this.resetSelection('edit', 'usuario');
+            this.resetSelection('edit', 'cliente');
+
+            if(item.usuario) {
+                this.triggerToggle('edit', 'usuario');
+                this.selectItem('edit', 'usuario', item.usuario.id, item.usuario.nomeUsuario);
+            } else if (item.cliente) {
+                this.triggerToggle('edit', 'cliente');
+                this.selectItem('edit', 'cliente', item.cliente.id, item.cliente.nome);
+            }
+
+            this.elements.modalEdit.showModal();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => new BudgetManager());
+</script>
+</body>
+</html>

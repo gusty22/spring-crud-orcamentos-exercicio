@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Usuários | PEDRO</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            /* Paleta Indigo & Slate */
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
+            --secondary: #64748b;
+            --bg-app: #f8fafc;
+            --bg-surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --font-family: 'Outfit', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout Grid */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex; flex-direction: column; gap: 3rem;
+        }
+        .brand {
+            font-size: 1.5rem; font-weight: 700; color: var(--primary);
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; }
+        .nav-item {
+            text-decoration: none; color: var(--secondary); padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm); font-weight: 500;
+            display: flex; align-items: center; gap: 0.75rem; transition: 0.2s;
+        }
+        .nav-item:hover { background-color: var(--bg-app); color: var(--primary); }
+        .nav-item.active { background-color: var(--primary-light); color: var(--primary); }
+
+        /* Conteúdo Principal */
+        .main-content { overflow-y: auto; padding: 2rem; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .top-bar h1 { font-size: 1.75rem; font-weight: 600; }
+        .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
+
+        .user-profile .avatar {
+            width: 40px; height: 40px; background-color: var(--primary); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;
+        }
+
+        /* Grid de Trabalho (Split View) */
+        .workspace-grid {
+            display: grid; grid-template-columns: 350px 1fr; gap: 2rem; align-items: start;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-surface); border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md); padding: 1.5rem; border: 1px solid var(--border);
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+        }
+        .card-header h2 { font-size: 1.1rem; font-weight: 600; }
+        .badge { font-size: 0.75rem; background: var(--bg-app); padding: 0.25rem 0.75rem; border-radius: 20px; color: var(--secondary); border: 1px solid var(--border); }
+
+        /* Componentes de Formulário */
+        .input-group { margin-bottom: 1.25rem; position: relative; }
+        .input-group label { display: block; font-size: 0.85rem; color: var(--secondary); margin-bottom: 0.4rem; font-weight: 500; }
+
+        .input-wrapper { position: relative; }
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; }
+
+        input {
+            width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; /* Espaço para ícone */
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-family: var(--font-family); font-size: 0.95rem;
+            background: var(--bg-surface); transition: 0.2s;
+        }
+        .modal-box input { padding-left: 1rem; } /* No modal sem ícone, ou ajustamos */
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        /* Botões */
+        .btn {
+            cursor: pointer; border: none; font-family: var(--font-family);
+            padding: 0.75rem 1.5rem; border-radius: var(--radius-sm);
+            font-weight: 500; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s;
+        }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-ghost { background: transparent; color: var(--secondary); }
+        .btn-ghost:hover { background: var(--bg-app); color: var(--text-main); }
+
+        .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; cursor: pointer; color: var(--secondary); display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.1rem; }
+        .btn-icon:hover { background: var(--bg-app); color: var(--primary); }
+        .btn-icon.danger:hover { background: #fee2e2; color: var(--danger); }
+
+        .full-width { width: 100%; }
+        .actions { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+
+        /* Tabela */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .data-table th { text-align: left; padding: 1rem; color: var(--secondary); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .action-cell { display: flex; gap: 0.25rem; justify-content: flex-end; }
+
+        /* Modal */
+        dialog.app-modal {
+            margin: auto; padding: 0; border: none; border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md); background: transparent; max-width: 90vw;
+        }
+        dialog::backdrop { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); }
+        .modal-box { background: white; padding: 2rem; width: 500px; display: flex; flex-direction: column; gap: 0.5rem; }
+
+        @media (max-width: 1024px) {
+            .app-layout { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="ph-fill ph-hexagon"></i>
+            <span>PEDRO</span>
+        </div>
+        <nav class="nav-menu">
+            <a href="orcamentos" class="nav-item"><i class="ph ph-currency-dollar"></i> Orçamentos</a>
+            <a href="usuarios" class="nav-item active"><i class="ph ph-users"></i> Usuários</a>
+            <a href="clientes" class="nav-item"><i class="ph ph-address-book"></i> Clientes</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div>
+                <h1>Usuários</h1>
+                <p class="subtitle">Gerencie permissões e dados cadastrais.</p>
+            </div>
+            <div class="user-profile">
+                <span class="avatar">PH</span>
+            </div>
+        </header>
+
+        <div class="workspace-grid">
+            <section class="card">
+                <div class="card-header">
+                    <h2>Novo Usuário</h2>
+                </div>
+                <form id="form-create">
+                    <div class="input-group">
+                        <label>Nome Completo</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-user input-icon"></i>
+                            <input type="text" id="create-nome" placeholder="Ex: Maria Souza" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>RG</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-identification-badge input-icon"></i>
+                            <input type="text" id="create-rg" class="mask-rg" placeholder="00.000.000-0" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>CPF</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-identification-card input-icon"></i>
+                            <input type="text" id="create-cpf" class="mask-cpf" placeholder="000.000.000-00" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Nome da Mãe</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-heart input-icon"></i>
+                            <input type="text" id="create-mae" placeholder="Nome materno" required>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary full-width">
+                            <i class="ph ph-check-circle"></i> Cadastrar
+                        </button>
+                        <button type="button" id="btn-clear" class="btn btn-ghost">Limpar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2>Usuários Cadastrados</h2>
+                    <span class="badge" id="total-count">0 usuários</span>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <div class="input-wrapper">
+                        <i class="ph ph-magnifying-glass input-icon"></i>
+                        <input type="text" id="table-search" placeholder="Filtrar por nome ou CPF...">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Documentos</th>
+                            <th>Filiação</th>
+                            <th class="text-right">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<dialog id="modal-edit" class="app-modal">
+    <div class="modal-box">
+        <div class="card-header" style="border:none; padding:0; margin-bottom: 1rem;">
+            <h3>Editar Usuário</h3>
+            <button class="btn-icon close-modal"><i class="ph ph-x"></i></button>
+        </div>
+        <form id="form-edit">
+            <input type="hidden" id="edit-id">
+
+            <div class="input-group">
+                <label>Nome Completo</label>
+                <input type="text" id="edit-nome" style="padding-left: 1rem;" required>
+            </div>
+
+            <div class="input-group">
+                <label>RG</label>
+                <input type="text" id="edit-rg" class="mask-rg" style="padding-left: 1rem;" required>
+            </div>
+
+            <div class="input-group">
+                <label>CPF</label>
+                <input type="text" id="edit-cpf" class="mask-cpf" style="padding-left: 1rem;" required>
+            </div>
+
+            <div class="input-group">
+                <label>Nome da Mãe</label>
+                <input type="text" id="edit-mae" style="padding-left: 1rem;" required>
+            </div>
+
+            <div class="actions" style="justify-content: flex-end;">
+                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    class UserManager {
+        constructor() {
+            this.api = '/api/usuarios';
+            this.data = [];
+
+            this.elements = {
+                formCreate: document.getElementById('form-create'),
+                formEdit: document.getElementById('form-edit'),
+                tableBody: document.getElementById('table-body'),
+                modalEdit: document.getElementById('modal-edit'),
+                totalCount: document.getElementById('total-count'),
+                searchInput: document.getElementById('table-search')
+            };
+
+            this.init();
+        }
+
+        init() {
+            this.bindEvents();
+            this.setupMasks();
+            this.fetchUsers();
+        }
+
+        bindEvents() {
+            // Submit Create
+            this.elements.formCreate.addEventListener('submit', (e) => this.handleCreate(e));
+
+            // Submit Edit
+            this.elements.formEdit.addEventListener('submit', (e) => this.handleUpdate(e));
+
+            // Clear Form
+            document.getElementById('btn-clear').addEventListener('click', () => this.elements.formCreate.reset());
+
+            // Table Actions
+            this.elements.tableBody.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if(!btn) return;
+                const id = btn.dataset.id;
+
+                if(btn.classList.contains('action-edit')) this.openEdit(id);
+                if(btn.classList.contains('action-delete')) this.handleDelete(id);
+            });
+
+            // Modal Close
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => this.elements.modalEdit.close());
+            });
+
+            // Search Filter
+            this.elements.searchInput.addEventListener('input', (e) => {
+                this.renderTable(e.target.value);
+            });
+        }
+
+        setupMasks() {
+            const cpfMask = (v) => v.replace(/\D/g,'').substring(0,11).replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            const rgMask = (v) => v.replace(/\D/g,'').substring(0,9).replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4");
+
+            document.querySelectorAll('.mask-cpf').forEach(inp => {
+                inp.addEventListener('input', e => e.target.value = cpfMask(e.target.value));
+            });
+            document.querySelectorAll('.mask-rg').forEach(inp => {
+                inp.addEventListener('input', e => e.target.value = rgMask(e.target.value));
+            });
+        }
+
+        async fetchUsers() {
+            try {
+                const res = await fetch(this.api);
+                if(!res.ok) throw new Error('API Error');
+                this.data = await res.json();
+                this.renderTable();
+            } catch(e) {
+                console.warn('API indisponível (Modo Demo)', e);
+                // Mock Data
+                if(this.data.length === 0) {
+                    this.data = [
+                        { id: 1, nomeUsuario: 'Pedro Silva', rg: '123456789', cpf: '11122233344', nomeMae: 'Maria Silva' },
+                        { id: 2, nomeUsuario: 'Ana Costa', rg: '987654321', cpf: '55566677788', nomeMae: 'Joana Costa' }
+                    ];
+                    this.renderTable();
+                }
+            }
+        }
+
+        renderTable(filter = '') {
+            this.elements.tableBody.innerHTML = '';
+
+            const filtered = this.data.filter(u =>
+                u.nomeUsuario.toLowerCase().includes(filter.toLowerCase()) ||
+                u.cpf.includes(filter)
+            );
+
+            this.elements.totalCount.textContent = `${filtered.length} usuários`;
+
+            filtered.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                        <td>#${u.id}</td>
+                        <td><strong>${u.nomeUsuario}</strong></td>
+                        <td>
+                            <div style="font-size:0.85rem; color:var(--text-muted)">CPF: ${this.formatCPF(u.cpf)}</div>
+                            <div style="font-size:0.85rem; color:var(--text-muted)">RG: ${this.formatRG(u.rg)}</div>
+                        </td>
+                        <td>${u.nomeMae}</td>
+                        <td class="action-cell">
+                            <button class="btn-icon action-edit" data-id="${u.id}"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="btn-icon danger action-delete" data-id="${u.id}"><i class="ph ph-trash"></i></button>
+                        </td>
+                    `;
+                this.elements.tableBody.appendChild(tr);
+            });
+        }
+
+        async handleCreate(e) {
+            e.preventDefault();
+            const payload = {
+                nomeUsuario: document.getElementById('create-nome').value,
+                rg: this.clean(document.getElementById('create-rg').value),
+                cpf: this.clean(document.getElementById('create-cpf').value),
+                nomeMae: document.getElementById('create-mae').value
+            };
+
+            try {
+                await fetch(this.api, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                this.elements.formCreate.reset();
+                await this.fetchUsers();
+                alert('Usuário cadastrado!');
+            } catch(e) { console.error(e); }
+        }
+
+        async handleUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('edit-id').value,
+                nomeUsuario: document.getElementById('edit-nome').value,
+                rg: this.clean(document.getElementById('edit-rg').value),
+                cpf: this.clean(document.getElementById('edit-cpf').value),
+                nomeMae: document.getElementById('edit-mae').value
+            };
+
+            try {
+                await fetch(this.api, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                this.elements.modalEdit.close();
+                await this.fetchUsers();
+                alert('Usuário atualizado!');
+            } catch(e) { console.error(e); }
+        }
+
+        async handleDelete(id) {
+            if(!confirm(`Remover usuário #${id}?`)) return;
+            try {
+                await fetch(`${this.api}/${id}`, { method: 'DELETE' });
+                await this.fetchUsers();
+            } catch(e) { console.error(e); }
+        }
+
+        openEdit(id) {
+            const user = this.data.find(u => u.id == id);
+            if(!user) return;
+
+            document.getElementById('edit-id').value = user.id;
+            document.getElementById('edit-nome').value = user.nomeUsuario;
+            document.getElementById('edit-mae').value = user.nomeMae;
+            document.getElementById('edit-rg').value = this.formatRG(user.rg);
+            document.getElementById('edit-cpf').value = this.formatCPF(user.cpf);
+
+            this.elements.modalEdit.showModal();
+        }
+
+        // Helpers
+        clean(val) { return val.replace(/\D/g, ''); }
+
+        formatCPF(v) {
+            if(!v) return '';
+            v = v.replace(/\D/g,'').substring(0,11);
+            return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+
+        formatRG(v) {
+            if(!v) return '';
+            v = v.replace(/\D/g,'').substring(0,9);
+            return v.replace(/(\d{2})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => new UserManager());
+</script>
+</body>
+</html>
