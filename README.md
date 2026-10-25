@@ -1,24 +1,31 @@
-﻿# SpringBootCrudPatterns
+# CRUD de Orçamentos e ICMS — Exercício Spring Boot
 
-Depois que levantar a aplicação, abra o navegador e acesse as URLs abaixo para ver o programa funcionando:
+Repositório acadêmico contendo uma aplicação Spring Boot para praticar **operações CRUD, organização em camadas e padrões de projeto**.
 
-- [http://localhost:8080/usuarios](http://localhost:8080/usuarios)
-- [http://localhost:8080/orcamentos](http://localhost:8080/orcamentos)
-- [http://localhost:8080/clientes](http://localhost:8080/clientes)
+## O que o código contém
 
-Para acessar o banco de dados H2:
+- Controllers de usuários, clientes e orçamentos.
+- Modelos e repositórios dos mesmos domínios.
+- Serviços de cálculo relacionados ao ICMS.
+- Arquivos `pom.xml`, Maven Wrapper e `Jenkinsfile`.
 
-- [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+A estrutura observada é muito semelhante à do repositório [ProjetoFrontcrispim](https://github.com/gusty22/ProjetoFrontcrispim). Documentamos este repositório como exercício, sem atribuir funcionalidades exclusivas não verificadas.
 
----
+## Executar
 
-## Banco de Dados
+```bash
+git clone https://github.com/gusty22/AtividadeCrispim.git
+cd AtividadeCrispim
+./mvnw spring-boot:run
+```
 
-Banco de dados: **PostgreSQL**  
-Verifique as configurações no arquivo `application.properties`.
+No Windows, execute `mvnw.cmd spring-boot:run`. Antes da execução, verifique os perfis e a configuração de banco de dados nos recursos da aplicação.
 
----
+## Aprendizados representados
 
-## Descrição
+- Rotas REST e controllers Spring.
+- Organização em modelos, repositórios e serviços.
+- Aplicação de padrões de projeto.
+- Estrutura inicial de automação com Jenkinsfile.
 
-A ideia do projeto é integrar um **CRUD** desenvolvido em **Spring Boot** com a refatoração de uma função utilizando **Design Patterns**, tornando o código mais organizado e reutilizável.
+Este repositório representa atividade de estudo, não um sistema comercial pronto para produção.
